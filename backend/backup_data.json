@@ -1,0 +1,144 @@
+[
+{
+  "model": "accounts.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$JGC2ScZPhMLz0gicvcheLZ$M6AypTMdsey6RVkX6ZHYvFAmAwvTO6+aKscITTmBgIU=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "test",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-03-20T04:52:22.377Z",
+    "created_at": "2026-03-20T04:52:22.764Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.user",
+  "pk": 3,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$GZmjLXw0bLjsOIoRK6wmh0$as3OavNDvpHdyF7iOV8wTqDi/CYZLXFPmHN3s1A1U4o=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "testuser3",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-03-24T02:27:44.856Z",
+    "created_at": "2026-03-24T02:27:45.192Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.user",
+  "pk": 4,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$L9B3p34w5rE5dgIXX3QuiT$dCxwhSJPFVWQtMdmnXDcjD+x/yUA3krYmxzHVUQ4AoQ=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "박말자",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-03-24T04:51:44.503Z",
+    "created_at": "2026-03-24T04:51:44.895Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.user",
+  "pk": 5,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$t8dCd1L07QeSlO8uWeAKUe$4GhxgoCwVZeUyptx5jC82VUHlb0HPFJQC64+3t4miU4=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "홍길자",
+    "first_name": "",
+    "last_name": "",
+    "email": "exam@example.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-03-24T05:36:06.664Z",
+    "created_at": "2026-03-24T05:36:06.979Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "products.product",
+  "pk": 1,
+  "fields": {
+    "name": "크림",
+    "description": null,
+    "price": "10000.00",
+    "image": "",
+    "created_at": "2026-03-20T04:52:38.934Z"
+  }
+},
+{
+  "model": "products.product",
+  "pk": 3,
+  "fields": {
+    "name": "상품 2",
+    "description": "상품 설명 2",
+    "price": "20000.00",
+    "image": "",
+    "created_at": "2026-03-23T02:39:40.833Z"
+  }
+},
+{
+  "model": "products.product",
+  "pk": 4,
+  "fields": {
+    "name": "상품 3",
+    "description": "상품 설명 3",
+    "price": "30000.00",
+    "image": "products/dog.png",
+    "created_at": "2026-03-23T02:40:04.985Z"
+  }
+},
+{
+  "model": "products.product",
+  "pk": 5,
+  "fields": {
+    "name": "상품 5",
+    "description": "상품 설명 5",
+    "price": "50000.00",
+    "image": "products/cat.png",
+    "created_at": "2026-03-23T02:40:12.893Z"
+  }
+},
+{
+  "model": "reviews.review",
+  "pk": 1,
+  "fields": {
+    "user": 1,
+    "product": 1,
+    "content": "좋아요",
+    "rating": 5,
+    "is_public": true,
+    "created_at": "2026-03-20T04:53:19.138Z",
+    "updated_at": "2026-03-20T04:53:19.138Z"
+  }
+},
+{
+  "model": "interactions.reviewlike",
+  "pk": 1,
+  "fields": {
+    "user": 1,
+    "review": 1,
+    "created_at": "2026-03-20T04:54:22.502Z"
+  }
+}
+]
