@@ -69,6 +69,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Install ai-server dependencies
+        if: hashFiles('ai-server/requirements.txt') != ''
         working-directory: ai-server
         run: |
           pip install -r requirements.txt
@@ -174,6 +175,7 @@ jobs:
           PY
 
       - name: FastAPI smoke import
+        if: hashFiles('ai-server/requirements.txt') != ''
         working-directory: ai-server
         run: |
           python - <<'PY'
