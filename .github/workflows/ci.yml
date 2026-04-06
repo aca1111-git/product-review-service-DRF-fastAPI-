@@ -200,6 +200,7 @@ jobs:
           docker build -t product-review-backend:ci .
 
       - name: Build ai-server image
+        if: hashFiles('ai-server/Dockerfile') != ''
         working-directory: ai-server
         run: |
           docker build -t product-review-ai:ci .
