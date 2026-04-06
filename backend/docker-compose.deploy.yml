@@ -1,0 +1,85 @@
+version: "3.9"
+
+services:
+
+  db:
+    image: postgres:16
+    container_name: product_review_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: product_db
+      POSTGRES_USER: product_user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - product_review_postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7
+    container_name: redis-new
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+  web:
+    build: .
+    container_name: drf-web
+    command: python manage.py runserver 0.0.0.0:8000
+    restart: always
+    volumes:
+      - ./apps:/app/apps
+      - ./mysite:/app/mysite
+      - ./static:/app/static
+      - ./templates:/app/templates
+      - ./media:/app/media
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    networks:
+      - app-network
+
+  fastapi:
+    build:
+      context: ../ai-server
+      dockerfile: Dockerfile.deploy
+    container_name: fastapi-server
+    command: uvicorn main_deploy:app --host 0.0.0.0 --port 8001
+    restart: always
+    ports:
+      - "8001:8001"
+    networks:
+      - app-network
+
+  celery:
+    build: .
+    container_name: celery-worker
+    command: celery -A mysite.celery:app worker --loglevel=info --pool=solo
+    restart: always
+    volumes:
+      - ./apps:/app/apps
+      - ./mysite:/app/mysite
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+      - web
+      - fastapi
+    networks:
+      - app-network
+
+volumes:
+  product_review_postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
