@@ -1,6 +1,7 @@
 version: "3.9"
 
 services:
+
   db:
     image: postgres:16
     container_name: product_review_postgres
@@ -16,7 +17,6 @@ services:
     networks:
       - app-network
 
-
   redis:
     image: redis:7
     container_name: redis-new
@@ -25,8 +25,6 @@ services:
       - "6379:6379"
     networks:
       - app-network
-
-
 
   web:
     build: .
@@ -49,13 +47,11 @@ services:
     networks:
       - app-network
 
-
-  # 4️⃣ FastAPI (AI 서버)
   fastapi:
     build:
       context: ../ai-server
     container_name: fastapi-server
-    command: uvicorn main:app --host 0.0.0.0 --port 8001  # AI 서버 실행
+    command: uvicorn main:app --host 0.0.0.0 --port 8001
     restart: always
     volumes:
       - ../ai-server:/app
@@ -64,7 +60,6 @@ services:
     networks:
       - app-network
 
-# 5️⃣ Celery (가장 마지막, 모든 서비스 필요)
   celery:
     build: .
     container_name: celery-worker
@@ -79,16 +74,13 @@ services:
       - db
       - redis
       - web
-      - fastapi   # AI 서버 필요
+      - fastapi
     networks:
       - app-network
 
-
-# 🔽 DB 데이터 영구 저장
 volumes:
   product_review_postgres_data:
 
-# 🔽 컨테이너끼리 통신하는 내부 네트워크
 networks:
   app-network:
     driver: bridge

@@ -5,58 +5,32 @@ from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-env = environ.Env()  
+env = environ.Env()
 environ.Env.read_env(BASE_DIR / ".env")
 
 # [추가] Celery + Redis 설정
 # =========================================================
 
-# [추가] Redis 주소
-# docker-compose 사용 시 보통 redis://redis:6379/0
-# 로컬 직접 실행 시 redis://127.0.0.1:6379/0
-# REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
 REDIS_URL = env(
     "REDIS_URL",
     default="redis://redis:6379/0"
 )
+
 # [추가] Celery broker / backend
 CELERY_BROKER_URL = REDIS_URL
 CELERY_RESULT_BACKEND = REDIS_URL
 
-# [추가] 직렬화 포맷
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
-
-# [추가] 시간대
 CELERY_TIMEZONE = "Asia/Seoul"
-
-# [추가] 작업 결과 만료 시간(1시간)
 CELERY_RESULT_EXPIRES = 3600
-
-# [추가] worker가 한 번에 너무 많은 작업을 오래 붙잡지 않도록 설정
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
-
-# [추가] 작업 시작 상태 추적
 CELERY_TASK_TRACK_STARTED = True
-
-# [추가] 긴 작업 안정성용
 CELERY_TASK_TIME_LIMIT = 60 * 10
 CELERY_TASK_SOFT_TIME_LIMIT = 60 * 8
-
-# [추가] 테스트/개발 중 eager 모드 쓰고 싶으면 환경변수로 제어 가능
 CELERY_TASK_ALWAYS_EAGER = os.getenv("CELERY_TASK_ALWAYS_EAGER", "False") == "True"
 CELERY_TASK_EAGER_PROPAGATES = True
-
-
-
-
-DB_NAME = os.getenv("DB_NAME", "product_db")
-DB_USER = os.getenv("DB_USER", "product_user")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "password")
-DB_HOST = os.getenv("DB_HOST", "db")
-DB_PORT = os.getenv("DB_PORT", "5432")
 
 DATABASES = {
     "default": {
@@ -69,29 +43,16 @@ DATABASES = {
     }
 }
 
-# FastAPI 서버주소
-# FASTAPI_BASE_URL = os.getenv("FASTAPI_BASE_URL", "http://fastapi:8001")
-
 FASTAPI_BASE_URL = env(
-  "FASTAPI_BASE_URL",
-  default="http://fastapi:8001"
+    "FASTAPI_BASE_URL",
+    default="http://fastapi:8001"
 )
 
+SECRET_KEY = env("SECRET_KEY")
 
-# 보안/실행 환경!
-SECRET_KEY = env('SECRET_KEY')
+DEBUG = env.bool("DJANGO_DEBUG", default=True)
 
-DEBUG = env.bool(
-    "DJANGO_DEBUG",
-    default=True
-)
-
-ALLOWED_HOSTS = env.list(
-    "DJANGO_ALLOWED_HOSTS",
-    default=["127.0.0.1", "localhost"]
-)
-
-
+ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["127.0.0.1", "localhost"])
 
 # Application definition
 
