@@ -10,44 +10,12 @@ services:
       POSTGRES_USER: product_user
       POSTGRES_PASSWORD: password
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - product_review_postgres_data:/var/lib/postgresql/data
     networks:
       - app-network
 
-  web:
-    build: .
-    container_name: drf-web
-    command: python manage.py runserver 0.0.0.0:8000
-    restart: always
-    volumes:
-      - .:/app
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env
-    depends_on:
-      - db
-      - redis
-    networks:
-      - app-network
-
-  celery:
-    build: .
-    container_name: celery-worker
-    command: celery -A mysite.celery:app worker --loglevel=info --pool=solo
-    restart: always
-    volumes:
-      - .:/app
-    env_file:
-      - .env
-    depends_on:
-      - db
-      - redis
-      - web
-    networks:
-      - app-network
 
   redis:
     image: redis:7
@@ -58,9 +26,69 @@ services:
     networks:
       - app-network
 
+
+
+  web:
+    build: .
+    container_name: drf-web
+    command: python manage.py runserver 0.0.0.0:8000
+    restart: always
+    volumes:
+      - ./apps:/app/apps
+      - ./mysite:/app/mysite
+      - ./static:/app/static
+      - ./templates:/app/templates
+      - ./media:/app/media
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+    networks:
+      - app-network
+
+
+  # 4️⃣ FastAPI (AI 서버)
+  fastapi:
+    build:
+      context: ../ai-server
+    container_name: fastapi-server
+    command: uvicorn main:app --host 0.0.0.0 --port 8001  # AI 서버 실행
+    restart: always
+    volumes:
+      - ../ai-server:/app
+    ports:
+      - "8001:8001"
+    networks:
+      - app-network
+
+# 5️⃣ Celery (가장 마지막, 모든 서비스 필요)
+  celery:
+    build: .
+    container_name: celery-worker
+    command: celery -A mysite.celery:app worker --loglevel=info --pool=solo
+    restart: always
+    volumes:
+      - ./apps:/app/apps
+      - ./mysite:/app/mysite
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+      - web
+      - fastapi   # AI 서버 필요
+    networks:
+      - app-network
+
+
+# 🔽 DB 데이터 영구 저장
 volumes:
   product_review_postgres_data:
 
+# 🔽 컨테이너끼리 통신하는 내부 네트워크
 networks:
   app-network:
     driver: bridge
