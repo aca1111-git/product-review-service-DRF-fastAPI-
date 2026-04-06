@@ -196,5 +196,6 @@ MEDIA_URL = "/media/"
 # 실제 업로드 파일 저장 폴더  
 MEDIA_ROOT = BASE_DIR / "media"
 
-STATIC_URL = "/static/"  
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
