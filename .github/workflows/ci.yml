@@ -245,7 +245,27 @@ jobs:
 
       - name: Wait for containers to initialize
         run: |
-          sleep 25
+          python3 - <<'PY'
+          import socket, time, sys
+
+          services = [
+              ("127.0.0.1", 8000, "Django"),
+              ("127.0.0.1", 8001, "FastAPI"),
+          ]
+
+          for host, port, name in services:
+              for i in range(60):
+                  try:
+                      with socket.create_connection((host, port), timeout=2):
+                          print(f"{name} is ready")
+                          break
+                  except OSError:
+                      print(f"Waiting for {name}... {i+1}/60")
+                      time.sleep(3)
+              else:
+                  print(f"{name} did not become ready in time")
+                  sys.exit(1)
+          PY
 
       - name: Show running containers
         working-directory: backend
