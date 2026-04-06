@@ -274,6 +274,7 @@ jobs:
 
       - name: Backend health check
         run: |
+          sleep 10
           curl -f http://127.0.0.1:8000/admin/login/
 
       - name: FastAPI health check
