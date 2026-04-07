@@ -7,9 +7,17 @@ on:
     branches: ["main", "backend/dev", "ai-server/dev"]
 
 jobs:
+  # -------------------------------------------------------
+  # JOB 1. Backend 테스트 (backend/dev, main 브랜치)
+  # -------------------------------------------------------
   app-tests:
     name: App Tests
     runs-on: ubuntu-latest
+    if: |
+      github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/backend/dev' ||
+      github.base_ref == 'main' ||
+      github.base_ref == 'backend/dev'
 
     services:
       postgres:
@@ -68,17 +76,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install ai-server dependencies
-        if: hashFiles('ai-server/requirements.txt') != ''
-        working-directory: ai-server
-        run: |
-          pip install -r requirements.txt
-
       - name: Wait for PostgreSQL
         run: |
           python - <<'PY'
-          import socket
-          import time
+          import socket, time
 
           for i in range(30):
               try:
@@ -97,21 +98,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client
 
-    #   - name: Install pgvector
-    #     run: |
-    #       sudo apt-get update
-    #       sudo apt-get install -y \
-    #         build-essential \
-    #         git \
-    #         clang-19 \
-    #         llvm-19 \
-    #         postgresql-server-dev-16
-            
-    #         git clone https://github.com/pgvector/pgvector.git
-    #         cd pgvector
-    #         make
-    #         sudo make install
-
       - name: Enable pgvector extension
         env:
           PGPASSWORD: password
@@ -125,8 +111,7 @@ jobs:
       - name: Wait for Redis
         run: |
           python - <<'PY'
-          import socket
-          import time
+          import socket, time
 
           for i in range(30):
               try:
@@ -174,6 +159,31 @@ jobs:
           print("Celery app loaded:", app.main)
           PY
 
+  # -------------------------------------------------------
+  # JOB 2. AI Server 테스트 (ai-server/dev 브랜치만)
+  # -------------------------------------------------------
+  ai-server-tests:
+    name: AI Server Tests
+    runs-on: ubuntu-latest
+    if: |
+      github.ref == 'refs/heads/ai-server/dev' ||
+      github.base_ref == 'ai-server/dev'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ai-server dependencies
+        if: hashFiles('ai-server/requirements.txt') != ''
+        working-directory: ai-server
+        run: |
+          pip install -r requirements.txt
+
       - name: FastAPI smoke import
         if: hashFiles('ai-server/requirements.txt') != ''
         working-directory: ai-server
@@ -185,10 +195,24 @@ jobs:
           print("FastAPI module imported:", module)
           PY
 
+      - name: Build ai-server image
+        if: hashFiles('ai-server/Dockerfile') != ''
+        working-directory: ai-server
+        run: |
+          docker build -t product-review-ai:ci .
+
+  # -------------------------------------------------------
+  # JOB 3. Docker Build (backend)
+  # -------------------------------------------------------
   docker-build:
     name: Docker Build Check
     runs-on: ubuntu-latest
     needs: app-tests
+    if: |
+      github.ref == 'refs/heads/main' ||
+      github.ref == 'refs/heads/backend/dev' ||
+      github.base_ref == 'main' ||
+      github.base_ref == 'backend/dev'
 
     steps:
       - name: Checkout repository
@@ -199,12 +223,9 @@ jobs:
         run: |
           docker build -t product-review-backend:ci .
 
-      - name: Build ai-server image
-        if: hashFiles('ai-server/Dockerfile') != ''
-        working-directory: ai-server
-        run: |
-          docker build -t product-review-ai:ci .
-
+  # -------------------------------------------------------
+  # JOB 4. 통합 테스트 (main 머지 시, backend만)
+  # -------------------------------------------------------
   integration-compose:
     name: Docker Compose Integration Test
     runs-on: ubuntu-latest
@@ -238,10 +259,11 @@ jobs:
         run: |
           docker compose config
 
-      - name: Start full stack with docker compose
+      - name: Start backend stack with docker compose
         working-directory: backend
         run: |
-          docker compose up -d --build
+          docker compose up -d --build \
+            db redis web celery
 
       - name: Wait for containers to initialize
         run: |
@@ -250,7 +272,6 @@ jobs:
 
           services = [
               ("127.0.0.1", 8000, "Django"),
-              ("127.0.0.1", 8001, "FastAPI"),
           ]
 
           for host, port, name in services:
@@ -275,7 +296,7 @@ jobs:
       - name: Backend health check
         run: |
           for i in $(seq 1 20); do
-            status=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8000/admin/login/)
+            status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 http://127.0.0.1:8000/admin/login/ || true)
             echo "Attempt $i: HTTP $status"
             if [ "$status" = "200" ]; then
               echo "Django is ready"
@@ -285,10 +306,6 @@ jobs:
           done
           echo "Django did not respond in time"
           exit 1
-
-      - name: FastAPI health check
-        run: |
-          curl -f http://127.0.0.1:8001/
 
       - name: Celery container check
         working-directory: backend
