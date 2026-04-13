@@ -8,6 +8,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
 environ.Env.read_env(BASE_DIR / ".env")
 
+# 변경
+_csrf_origins = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_origins.split(',') if o.strip()] or [
+    'http://127.0.0.1:42181',
+    'http://localhost:42181',
+]
 # [추가] Celery + Redis 설정
 # =========================================================
 
