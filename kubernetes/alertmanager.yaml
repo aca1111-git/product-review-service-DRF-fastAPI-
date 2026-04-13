@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: product-review
+data:
+  alertmanager.yml: |
+    global:
+      resolve_timeout: 5m
+    route:
+      group_by: ['alertname']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+      receiver: 'discord'
+    receivers:
+      - name: 'discord'
+        discord_configs:
+          - webhook_url: 'https://discord.com/api/webhooks/1493110954752344196/2np-uovAWOPRDL32oqyPhwGS2oFMevlL8bNlHBWDdL-_wtY9ALOAaul3ZFv6y3fHy-wy'
+            title: '{{ .GroupLabels.alertname }}'
+            message: |
+              {{ range .Alerts }}
+              **상태**: {{ .Status }}
+              **알림**: {{ .Annotations.summary }}
+              **설명**: {{ .Annotations.description }}
+              {{ end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  namespace: product-review
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alertmanager
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+    spec:
+      containers:
+        - name: alertmanager
+          image: prom/alertmanager:latest
+          args:
+            - '--config.file=/etc/alertmanager/alertmanager.yml'
+          ports:
+            - containerPort: 9093
+          volumeMounts:
+            - name: alertmanager-config
+              mountPath: /etc/alertmanager
+      volumes:
+        - name: alertmanager-config
+          configMap:
+            name: alertmanager-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager-service
+  namespace: product-review
+spec:
+  selector:
+    app: alertmanager
+  ports:
+    - port: 9093
+      targetPort: 9093
