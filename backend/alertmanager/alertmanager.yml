@@ -6,9 +6,16 @@ route:
   group_wait: 10s
   group_interval: 10s
   repeat_interval: 1h
-  receiver: 'webhook'
+  receiver: 'discord'
 
 receivers:
-  - name: 'webhook'
-    webhook_configs:
-      - url: 'http://localhost:5001'  # 나중에 Slack 등으로 교체
+  - name: 'discord'
+    discord_configs:
+      - webhook_url: 'https://discord.com/api/webhooks/1493110954752344196/2np-uovAWOPRDL32oqyPhwGS2oFMevlL8bNlHBWDdL-_wtY9ALOAaul3ZFv6y3fHy-wy'
+        title: '{{ .GroupLabels.alertname }}'
+        message: |
+          {{ range .Alerts }}
+          **상태**: {{ .Status }}
+          **알림**: {{ .Annotations.summary }}
+          **설명**: {{ .Annotations.description }}
+          {{ end }}

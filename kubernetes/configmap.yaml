@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: product-review
+data:
+  DJANGO_DEBUG: "False"
+  DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1,*"
+  CSRF_TRUSTED_ORIGINS: "http://127.0.0.1:42181,http://localhost:42181"
+  DB_NAME: product_db
+  DB_USER: product_user
+  DB_HOST: postgres-service
+  DB_PORT: "5432"
+  REDIS_URL: redis://redis-service:6379/0
+  FASTAPI_BASE_URL: http://fastapi-service:8001
+  GF_SECURITY_ADMIN_PASSWORD: admin123
+  .env: |
+    DJANGO_DEBUG=False
+    DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,*
+    CSRF_TRUSTED_ORIGINS=http://127.0.0.1:42181,http://localhost:42181
+    DB_NAME=product_db
+    DB_USER=product_user
+    DB_HOST=postgres-service
+    DB_PORT=5432
+    REDIS_URL=redis://redis-service:6379/0
+    FASTAPI_BASE_URL=http://fastapi-service:8001
+    SECRET_KEY=ci-secret-key-change-in-production
+    DB_PASSWORD=password
